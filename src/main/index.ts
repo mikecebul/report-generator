@@ -1,7 +1,10 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import csv from 'csv-parser'
+import fs from 'fs'
+import { type ClientDetails } from '../types/clientDetails'
 
 function createWindow(): void {
   // Create the browser window.
@@ -64,6 +67,29 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
+  }
+})
+
+ipcMain.handle('get-client-details', async () => {
+  console.log('main hit')
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    properties: ['openFile']
+  })
+  if (canceled) {
+    return null
+  } else {
+    const results: ClientDetails[] = []
+    const path = filePaths[0]
+    return new Promise((resolve, reject) => {
+      fs.createReadStream(path)
+        .pipe(csv())
+        .on('data', (data) => results.push(data))
+        .on('end', () => {
+          console.log(results)
+          resolve(results)
+        })
+        .on('error', reject)
+    })
   }
 })
 
