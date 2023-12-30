@@ -8,7 +8,6 @@ function App(): JSX.Element {
   const handleFileChoose = async () => {
     const results = await window.api.getClientDetails()
     setClientDetails(results)
-    console.log(results)
   }
 
   return (

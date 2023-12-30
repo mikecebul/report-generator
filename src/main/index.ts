@@ -85,7 +85,6 @@ ipcMain.handle('get-client-details', async () => {
         .pipe(csv())
         .on('data', (data) => results.push(data))
         .on('end', () => {
-          console.log(results)
           resolve(results)
         })
         .on('error', reject)
