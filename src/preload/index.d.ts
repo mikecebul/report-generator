@@ -1,11 +1,12 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import { ClientDetails } from 'src/types/clientDetails'
+import { GenerateReportsResponse } from 'src/types/generateReportsResponse'
 
 declare global {
   interface Window {
     electron: ElectronAPI
     api: {
-      getClientDetails: () => ClientDetails[]
+      selectClientDetailsFile: () => Proimise<string>
+      generateReports: (string) => Promise<GenerateReportsResponse>
     }
   }
 }

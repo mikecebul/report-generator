@@ -5,6 +5,7 @@ import icon from '../../resources/icon.png?asset'
 import csv from 'csv-parser'
 import fs from 'fs'
 import { type ClientDetails } from '../types/clientDetails'
+import { generateReports } from './generateReport'
 
 function createWindow(): void {
   // Create the browser window.
@@ -70,27 +71,39 @@ app.on('window-all-closed', () => {
   }
 })
 
-ipcMain.handle('get-client-details', async () => {
-  console.log('main hit')
+ipcMain.handle('select-client-details-file', async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog({
     properties: ['openFile']
   })
-  if (canceled) {
+  if (canceled || filePaths.length === 0) {
     return null
   } else {
-    const results: ClientDetails[] = []
-    const path = filePaths[0]
-    return new Promise((resolve, reject) => {
-      fs.createReadStream(path)
-        .pipe(csv())
-        .on('data', (data) => results.push(data))
-        .on('end', () => {
-          resolve(results)
-        })
-        .on('error', reject)
-    })
+    return filePaths[0]
   }
 })
 
+const processData = async (filePath: string): Promise<ClientDetails[]> => {
+  return new Promise((resolve, reject) => {
+    const results: ClientDetails[] = []
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on('data', (data) => results.push(data))
+      .on('end', () => resolve(results))
+      .on('error', reject)
+  })
+}
+
+ipcMain.handle('generate-reports', async (_, filePath: string) => {
+  try {
+    const clientDetailsArray = await processData(filePath)
+    clientDetailsArray.forEach((clientDetail) => {
+      generateReports(clientDetail)
+    })
+    return { success: true }
+  } catch (error) {
+    console.error('Error in report generation:', error)
+    return { success: false, error: error }
+  }
+})
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.

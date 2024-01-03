@@ -3,7 +3,8 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
 const api = {
-  getClientDetails: () => ipcRenderer.invoke('get-client-details')
+  selectClientDetailsFile: () => ipcRenderer.invoke('select-client-details-file'),
+  generateReports: (filePath: string) => ipcRenderer.invoke('generate-reports', filePath)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
